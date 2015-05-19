@@ -3,13 +3,12 @@
 
 ?>
 
-
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>Módulo 3 - Flujo Votante</title>
-        <link rel="stylesheet" href="themes/Bootstrap.css">
+        <link rel="stylesheet" href="themes/Bootstrap.min.css">
         <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.0/jquery.mobile.structure-1.4.0.min.css" />
         <link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
         <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>

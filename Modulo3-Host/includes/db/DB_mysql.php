@@ -2,9 +2,9 @@
 
 //Clase para comunicacion con MySQL
 //Los metodos se han simplificado para el manejo de conexiones
-class DB_mysql {
+class DB_mysql
+{
     /* variables de conexión */
-
     var $Database;
     var $Host;
     var $User;
@@ -14,8 +14,6 @@ class DB_mysql {
     var $Connection_ID = 0;
     var $Query_ID = 0;
 
-
-
     /* número de error y texto error */
     var $Errno = 0;
 
@@ -23,20 +21,18 @@ class DB_mysql {
 
       de esta clase, se ejecutará esta función */
 
-    function DB_mysql($bd = "citalinc_modulo3", $host = "localhost", $user = "citalinc_hmojica", $pass = "\$nQZh\$lByTmB") {
-
+    function DB_mysql($bd = "citalinc_modulo3", $host = "localhost", $user = "citalinc_mod3", $pass = "k3rSUkAfz3Jg")
+    {
         $this->Database = $bd;
-
-        $this->Host = $host;
-
-        $this->User = $user;
-
+        $this->Host     = $host;
+        $this->User     = $user;
         $this->Password = $pass;
     }
 
     /* Conexión a la base de datos */
 
-    function openConnection() {
+    function openConnection()
+    {
         // Conectamos al Host
         $this->Connection_ID = mysqli_connect($this->Host, $this->User, $this->Password);
 
@@ -56,26 +52,29 @@ class DB_mysql {
 
     /* Cierra la conexion */
 
-    function closeConnection() {
+    function closeConnection()
+    {
         return @mysqli_close($this->Connection_ID);
     }
 
     /* Establece el autocommit, para manejar manualmente las transacciones */
 
-    function setAutocommit($par) {
-
+    function setAutocommit($par)
+    {
         return @mysqli_autocommit($this->Connection_ID, $par);
     }
 
     /* Compromete la transaccion */
 
-    function commit() {
+    function commit()
+    {
         return @mysqli_commit($this->Connection_ID);
     }
 
     /* Deshace la transaccion */
 
-    function rollback() {
+    function rollback()
+    {
         return @mysqli_rollback($this->Connection_ID);
     }
 
@@ -92,7 +91,8 @@ class DB_mysql {
      *          If the no Stored Procedure passed in or $args is not valid, returns null
      * */
 
-    function executeStoredProcedure($sp, $args, $isNonQuery = false) {
+    function executeStoredProcedure($sp, $args, $isNonQuery = false)
+    {
         if ($sp != "" && is_array($args)) {
             $query = "CALL " . $sp;
             if (count($args) > 0) {
@@ -124,88 +124,69 @@ class DB_mysql {
 
     /* Ejecuta un consulta del tipo select */
 
-    function executeQuery($sql = "") {
-
-
-
-        if ($sql == "") {
-
+    function executeQuery($sql = "")
+    {
+        if ($sql == "")
+        {
             $this->Error = "No ha especificado una consulta SQL";
-
             return 0;
         }
-
-
-
         //ejecutamos la consulta
-
         $this->Query_ID = @mysqli_query($this->Connection_ID, $sql);
-
-
-
-        if (!$this->Query_ID) {
-
+        if (!$this->Query_ID)
+        {
             $this->Errno = mysqli_errno($this->Connection_ID);
-
             $this->Error = mysqli_error($this->Connection_ID);
         }
 
         /* Si hemos tenido éxito en la consulta devuelve
-
           el identificador de la conexión, sino devuelve 0 */
-
         return $this->Query_ID;
     }
 
     /* Ejecuta un query de modificacion, insert,delete, update */
 
-    function executeUpdate($sql = "") {
-
-
-        if ($sql == "") {
-
+    function executeUpdate($sql = "")
+    {
+        if ($sql == "")
+        {
             $this->Error = "No ha especificado una consulta SQL";
-
             return 0;
         }
-
-
-
+        
         //ejecutamos la consulta
         $stmt = mysqli_prepare($this->Connection_ID, $sql);
-
         $v = @mysqli_stmt_execute($stmt);
-
         @mysqli_stmt_close($stmt);
-
 
         return mysqli_insert_id($this->Connection_ID) + $v;
     }
 
     /* Devuelve el número de campos de una consulta */
 
-    function getNumFields() {
-
+    function getNumFields()
+    {
         return mysqli_num_fields($this->Query_ID);
     }
 
     /* Devuelve el número de registros de una consulta */
 
-    function getNumRows() {
-
+    function getNumRows()
+    {
         return mysqli_num_rows($this->Query_ID);
     }
 
     /* Devuelve el nombre de un campo de una consulta */
 
-    function getFieldNames() {
-
+    function getFieldNames()
+    {
         return $this->Query_ID->fetch_fields();
     }
 
     /* Obtiene la matriz de metadatos de una consulta */
 
-    function getResultSetMetaData() {
+    function getResultSetMetaData()
+    {
         $metadata = array();
         for ($i = 0; $i < $this->getNumFields(); $i++) {
 
@@ -216,8 +197,8 @@ class DB_mysql {
 
     /* Obtiene la matriz de datos de una consulta */
 
-    function getResultSet() {
-
+    function getResultSet()
+    {
         $row_number = 0;
         $resultset = array();
         while ($row = mysqli_fetch_row($this->Query_ID)) {

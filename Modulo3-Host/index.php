@@ -1,10 +1,5 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 ?>
 
@@ -49,12 +44,12 @@
             </form>
 
             <div align="center" id = 'indexLoadingSpinner'><i class="fa fa-spinner fa-spin fa-3x"></i></div>
-            <div style="text-align: center;" id="divError" class="alert alert-danger" role="alert"></div>
+            <br>
+            <div style="text-align: center; color: red;" id="divError"></div>
 
         </div>
         </div>
         <script type='text/javascript'>
-
             //Este es como el $(document).ready
             $(document).bind("pageinit",function()
             {
@@ -70,8 +65,8 @@
                 $.ajax({
                     type: "POST",
                     url: "index_login.php",
-                    dataType: "html",                       //Data waited in return from server
-                    data:                                       //Data sent to the server
+                    dataType: "html",
+                    data:
                     {
                         usr : $("#iUser").val(),
                         pass: $("#iPass").val()
@@ -80,7 +75,21 @@
                         function(data)
                         {
                             $("#indexLoadingSpinner").hide();
-                            window.location = "datosIniciales.php";
+                            
+                            if(data.indexOf("OK") > -1)
+                            {
+                                window.location = "datosIniciales.php";
+                            }
+                            else if(data.indexOf("ERROR") > -1)
+                            {
+                                $('#divError').show();
+                                $("#divError").html("Usuario y Contraseña no válidos");
+                            }
+                            else
+                            {
+                                $('#divError').show();
+                                $("#divError").html(data);
+                            }
                         },
                     error:
                         function()

@@ -61,6 +61,7 @@
             {
                 $("#indexLoadingSpinner").show();
                 $("#divError").hide();
+                $("#divError").html("");
         
                 $.ajax({
                     type: "POST",

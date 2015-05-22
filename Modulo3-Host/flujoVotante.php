@@ -1,5 +1,45 @@
 <?php
+if(PHP_OS == "WINNT")
+{
+    /*Windows Includes*/
+    require_once dirname(__FILE__).'\includes\db\Usuario.php';
+    require_once dirname(__FILE__).'\includes\db\FlujoVotante.php';
+    require_once dirname(__FILE__).'\includes\tools\tools.php';
+}
+else
+{
+    /*Unix / Linux includes*/
+    require_once dirname(__FILE__).'/includes/db/Usuario.php';
+    require_once dirname(__FILE__).'/includes/db/FlujoVotante.php';
+    require_once dirname(__FILE__).'/includes/tools/tools.php';
+}
 
+//Verifica si los datos iniciales ya fueron ingresados
+$noData = 'true';
+$flujoVotanteData = null;
+$userName   = '';
+$nombreRMDC = '';
+$seccion    = '';
+$casilla    = '';
+
+if(isset($_SESSION['flujoVotanteData']))
+{
+    $flujoVotanteData = unserialize($_SESSION['flujoVotanteData']);
+    if($flujoVotanteData != null)
+    {
+        $noData = 'false';
+        $userName   = $flujoVotanteData->getUserName();
+        $nombreRMDC = $flujoVotanteData->getNombreRMDC();
+        //Obtener los nombres de la seccion y el tipo de casilla
+        //para desplegar en lugar de los ID's
+        $seccion    = $flujoVotanteData->getSeccion();
+        $casilla    = $flujoVotanteData->getTipoCasilla();
+    }
+    else
+    {
+        $noData = 'true';
+    }
+}
 
 ?>
 
@@ -41,7 +81,7 @@
 
                 <div align="center" id ='fVLoadingSpinner'><i class="fa fa-spinner fa-spin fa-3x"></i></div>
                 <div align="center" id ='fVOK'><i class="fa fa-check fa-4x"></i></div>
-                
+                <div style="text-align: center; color: red;" id="divError"></div>
                 
                 <fieldset class="ui-grid-a">
                     <div class="ui-block-b"><button type="button" onclick="sendVotante();">Enviar Votante</button></div>
@@ -51,15 +91,78 @@
             <script type='text/javascript'>
                 $(document).bind("pageinit",function()
                 {
-                    //Si los datos iniciales no han sido seteados entonces
-                    //desactiva la TAB de Votos
+                    if(<?php echo $noData; ?>)
+                    {//No existen datos de usuario
+                        //MUESTRA UN BOOTBOX Alert
+                        window.location = "datosIniciales.php";
+                    }
+                    
+                    var userName    = '<?php echo $userName; ?>';
+                    var nombreRMDC  = '<?php echo $nombreRMDC; ?>';
+                    var seccion     = '<?php echo $seccion; ?>';
+                    var casilla     = '<?php echo $casilla; ?>';
+                    var datos       = '';
+                    
+                    datos  = 'Usuario: '  + userName     + '<br>';
+                    datos += 'Nombre:  '  + nombreRMDC   + '<br>';
+                    datos += 'Seccion:  ' + seccion      + '<br>';
+                    datos += 'Casilla:  ' + casilla      + '<br>';
+                    
+                    $('#userDataLabel').html(datos);
+                    
                     $('#fVLoadingSpinner').hide();
                     $('#fVOK').hide();
                 });
                 
                 function sendVotante()
                 {
+                    $('#fVLoadingSpinner').show();
+                    $("#divError").hide();
+                    $("#divError").html("");
+                    $('#fVOK').hide();
                     
+                    $.ajax({
+                        type: "POST",
+                        url: "flujoVotante_sendVoto.php",
+                        dataType: "html",
+                        data:
+                        {
+                            LND  : $("#lnd").val()
+                        },
+                        success:
+                            function(data)
+                            {
+                                $("#fVLoadingSpinner").hide();
+
+                                if(data.indexOf("OK") > -1)
+                                {
+                                    $('#fVOK').show();
+                                    $("#lnd").val("");
+                                }
+                                else if(data.indexOf("ERROR") > -1)
+                                {
+                                    $('#divError').show();
+                                    $("#divError").html("Datos corruptos");
+                                }
+                                else if(data.indexOf("ALREADY") > -1)
+                                {
+                                    $('#divError').show();
+                                    $("#divError").html("El votante ya se encontraba registrado");
+                                }
+                                else
+                                {
+                                    $('#divError').show();
+                                    $("#divError").html(data);
+                                }
+                            },
+                        error:
+                            function()
+                            {
+                                $("#fVLoadingSpinner").hide();
+                                $('#divError').show();
+                                $("#divError").html("Error de conexión");
+                            }
+                    });
                 }
                 
             </script>

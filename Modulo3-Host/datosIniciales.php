@@ -1,5 +1,32 @@
 <?php
 
+if(PHP_OS == "WINNT")
+{
+    /*Windows Includes*/
+    require_once dirname(__FILE__).'\includes\db\Usuario.php';
+    require_once dirname(__FILE__).'\includes\db\FlujoVotante.php';
+    require_once dirname(__FILE__).'\includes\tools\tools.php';
+}
+else
+{
+    /*Unix / Linux includes*/
+    require_once dirname(__FILE__).'/includes/db/Usuario.php';
+    require_once dirname(__FILE__).'/includes/db/FlujoVotante.php';
+    require_once dirname(__FILE__).'/includes/tools/tools.php';
+}
+
+//Verifica si los datos iniciales ya fueron ingresados
+$noData = 'true';
+$flujoVotanteData = null;
+if(isset($_SESSION['flujoVotanteData']))
+{
+    $flujoVotanteData = unserialize($_SESSION['flujoVotanteData']);
+    if($flujoVotanteData != null)
+        $noData = 'false';
+    else
+        $noData = 'true';
+}
+
 
 ?>
 
@@ -23,7 +50,7 @@
                 <div data-role="navbar">
                     <ul>
                         <li><a href="datosIniciales.php" rel="external" data-icon="home" class="ui-btn-active">Datos iniciales</a></li>
-                        <li><a href="flujoVotante.php" rel="external" data-icon="star">Votos</a></li>
+                        <div id="divVotos"><li><a href="flujoVotante.php" rel="external" data-icon="star">Votos</a></li></div>
                     </ul>
                 </div>
             </div>
@@ -33,8 +60,8 @@
                 <h2>Inserta tus datos</h2>
 
                 <div data-role="fieldcontain">
-                        <label for="name">Nombre:</label>
-                        <input type="text" name="name" id="name" value=""  />
+                        <label for="iName">Nombre:</label>
+                        <input type="text" name="iName" id="iName" value=""  />
                 </div>
 
                 <div data-role="fieldcontain">
@@ -48,7 +75,7 @@
                 </div>
 
                 <div data-role="fieldcontain">
-                        <label for="casilla" class="select">Sección:</label>
+                        <label for="casilla" class="select">Casilla:</label>
                         <select name="casilla" id="casilla" data-native-menu="false">
                                 <option value="0">Básica</option>
                                 <option value="1">Contigua 1</option>
@@ -63,23 +90,73 @@
                 </fieldset>
 
                 <div align="center" id ='dILoadingSpinner'><i class="fa fa-spinner fa-spin fa-3x"></i></div>
+                <div style="text-align: center; color: red;" id="divError"></div>
 
             </div>
             <script type='text/javascript'>
-                $(document).bind("pageinit",function()
-                {
+                $(document).ready(function(){
                     //Si los datos iniciales no han sido seteados entonces
                     //desactiva la TAB de Votos
                     $('#dILoadingSpinner').hide();
+                    
+                    if(<?php echo $noData; ?>)
+                    {//El usuario no ha cargado aun los datos iniciales
+                        $("#divVotos").hide();
+                    }
+                    else
+                    {//Los datos Iniciales ya han sido cargados. Muestralos
+                        // El selectmenu('refresh') es necesario debido al jquery mobile
+                        $("#iName").val("<?php echo $flujoVotanteData->getNombreRMDC(); ?>");
+                        $("#section").val("<?php echo $flujoVotanteData->getSeccion(); ?>").selectmenu('refresh');
+                        $("#casilla").val("<?php echo $flujoVotanteData->getTipoCasilla(); ?>").selectmenu('refresh');
+                    }
                 });
 
                 function setData()
                 { //Manda los datos al servidor
                     $('#dILoadingSpinner').show();
+                    $("#divError").hide();
+                    $("#divError").html("");
+                    
+                    //VALIDAR AQUI QUE HAYA INSERTADO BIEN LOS DATOS
 
-                    //Checa si es posible habilitar la TAB de Votos
+                    $.ajax({
+                        type: "POST",
+                        url: "datosIniciales_setData.php",
+                        dataType: "html",
+                        data:
+                        {
+                            nombreRMDC  : $("#iName").val(),
+                            section     : $("#section").val(),
+                            casilla     : $("#casilla").val()
+                        },
+                        success:
+                            function(data)
+                            {
+                                $("#dILoadingSpinner").hide();
 
-                    window.location = "flujoVotante.php";
+                                if(data.indexOf("OK") > -1)
+                                {
+                                    window.location = "flujoVotante.php";
+                                }
+                                else if(data.indexOf("ERROR") > -1)
+                                {
+                                    window.location = "index.php";
+                                }
+                                else
+                                {
+                                    $('#divError').show();
+                                    $("#divError").html(data);
+                                }
+                            },
+                        error:
+                            function()
+                            {
+                                $("#dILoadingSpinner").hide();
+                                $('#divError').show();
+                                $("#divError").html("Error de conexión");
+                            }
+                    });
                 }
 
             </script>
